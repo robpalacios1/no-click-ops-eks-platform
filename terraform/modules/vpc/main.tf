@@ -107,7 +107,7 @@ resource "aws_nat_gateway" "nat_gateway_2" {
 resource "aws_route_table" "public_route_table" {
   vpc_id = aws_vpc.main_vpc.id
 
-  route = {
+  route {
     cidr_block = var.public_route_table_cidr_block
     gateway_id = aws_internet_gateway.igw.id
   }
@@ -118,7 +118,7 @@ resource "aws_route_table" "public_route_table" {
 resource "aws_route_table" "private_route_table_1" {
   vpc_id = aws_vpc.main_vpc.id
 
-  route = {
+  route {
     cidr_block = var.private_route_table_1_cidr_block
     nat_gateway_id = aws_nat_gateway.nat_gateway_1.id
   }
@@ -129,7 +129,7 @@ resource "aws_route_table" "private_route_table_1" {
 resource "aws_route_table" "private_route_table_2" {
   vpc_id = aws_vpc.main_vpc.id
 
-  route = {
+  route {
     cidr_block = var.private_route_table_2_cidr_block
     nat_gateway_id = aws_nat_gateway.nat_gateway_2.id
   }
@@ -176,7 +176,7 @@ resource "aws_security_group" "public_security_group" {
         from_port   = ingress.value.from_port
         to_port     = ingress.value.to_port
         protocol    = ingress.value.protocol
-        cidr_blocks = ingress.value.cidr_block
+        cidr_blocks = ingress.value.cidr_blocks
     }
   }
 
@@ -202,7 +202,7 @@ resource "aws_security_group" "private_security_group" {
         from_port   = ingress.value.from_port
         to_port     = ingress.value.to_port
         protocol    = ingress.value.protocol
-        cidr_blocks = ingres.value.cidr_block
+        cidr_blocks = ingress.value.cidr_blocks
     }
   }
 

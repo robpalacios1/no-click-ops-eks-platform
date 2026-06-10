@@ -3,7 +3,7 @@
 # ====================================================================
 
 resource "aws_iam_role" "eks_cluster_role" {
-    name = "dev-eks-cluster-role"
+    name = var.eks_cluster_role_name
 
     assume_role_policy = jsonencode({
         Version = "2012-10-17"
@@ -18,15 +18,11 @@ resource "aws_iam_role" "eks_cluster_role" {
         ]
     })
 
-    tags = {
-        Name = "dev-eks-cluster-role"
-        environment = "dev"
-    }
+    tags = var.eks_cluster_role_tags
 }
-
 resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
     role = aws_iam_role.eks_cluster_role.name
-    policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+    policy_arn = var.eks_cluster_policy_arn
 }
 
 # ====================================================================
@@ -34,7 +30,7 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
 # ====================================================================
 
 resource "aws_iam_role" "eks_node_role" {
-    name = "dev-eks-node-role"
+    name = var.eks_node_role_name
 
     assume_role_policy = jsonencode({
         Version = "2012-10-17"
@@ -49,25 +45,22 @@ resource "aws_iam_role" "eks_node_role" {
         ]
     })
 
-    tags = {
-        Name = "dev-eks-node-role"
-        environment = "dev"
-    }
+    tags = var.eks_node_role_tags
 }
 
 resource "aws_iam_role_policy_attachment" "eks_worker_node_policy" {
     role = aws_iam_role.eks_node_role.name
-    policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+    policy_arn = var.eks_worker_node_policy_arn
 }
 
 resource "aws_iam_role_policy_attachment" "eks_cni_policy" {
     role = aws_iam_role.eks_node_role.name
-    policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+    policy_arn = var.eks_cni_policy_arn
 }
 
 resource "aws_iam_role_policy_attachment" "eks_read_only_policy" {
     role = aws_iam_role.eks_node_role.name
-    policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+    policy_arn = var.eks_read_only_policy_arn
 }
 
 # ====================================================================
@@ -75,22 +68,19 @@ resource "aws_iam_role_policy_attachment" "eks_read_only_policy" {
 # ====================================================================
 
 resource "aws_eks_cluster" "dev-eks-cluster" {
-    name = "dev-eks-cluster"
+    name = var.dev_eks_cluster_name
     role_arn = aws_iam_role.eks_cluster_role.arn
-    version = "1.35"
+    version = var.dev_eks_cluster_version
 
     vpc_config {
-        subnet_ids = ["subnet-0123456789abcdef0", "subnet-0123456789abcdef0"]
-        endpoint_private_access = true
-        endpoint_public_access = true
+        subnet_ids = var.dev_eks_cluster_subnet_ids
+        endpoint_private_access = var.dev_eks_cluster_endpoint_private_access
+        endpoint_public_access = var.dev_eks_cluster_endpoint_public_access
     }
 
     depends_on = [ aws_iam_role_policy_attachment.eks_cluster_policy ]
 
-    tags = {
-        Name = "dev-eks-cluster"
-        environment = "dev"
-    }
+    tags = var.dev_eks_cluster_tags
 }
 
 # ====================================================================
@@ -99,14 +89,14 @@ resource "aws_eks_cluster" "dev-eks-cluster" {
 
 resource "aws_eks_node_group" "dev-eks-node-group" {
     cluster_name    = aws_eks_cluster.dev-eks-cluster.name
-    node_group_name = "dev-eks-node-group"
+    node_group_name = var.dev_eks_node_group_name
     node_role_arn   = aws_iam_role.eks_node_role.arn
-    subnet_ids      = ["subnet-0123456789abcdef0", "subnet-0123456789abcdef0"]
-    instance_types  = ["t3.micro"]
+    subnet_ids      = var.dev_eks_node_group_subnet_ids
+    instance_types  = var.dev_eks_node_group_instance_types
     scaling_config {
-        desired_size = 2
-        max_size     = 3
-        min_size     = 1
+        desired_size = var.dev_eks_node_group_scaling_config["desired_size"]
+        max_size     = var.dev_eks_node_group_scaling_config["max_size"]
+        min_size     = var.dev_eks_node_group_scaling_config["min_size"]
     }
 
     depends_on = [ 
